@@ -13,9 +13,15 @@ class TableBloc extends Bloc<TableEvent, TableState> {
   final InsertRowUseCase _insertRowUseCase;
   final UpdateRowUseCase _updateRowUseCase;
   final String tableName;
+  final List<String> columns;
 
-  TableBloc(this._loadTableUseCase, this._deleteRowUseCase,
-      this._insertRowUseCase, this.tableName, this._updateRowUseCase)
+  TableBloc(
+      this._loadTableUseCase,
+      this._deleteRowUseCase,
+      this._insertRowUseCase,
+      this._updateRowUseCase,
+      this.tableName,
+      this.columns)
       : super(const TableLoading()) {
     on<UpdateRow>(updateRow);
     on<InsertRow>(insertRow);
@@ -24,16 +30,14 @@ class TableBloc extends Bloc<TableEvent, TableState> {
   }
 
   Future<void> updateRow(UpdateRow event, Emitter<TableState> emit) async {
-    final dataState =
-        await _updateRowUseCase(params: (tableName, event.row!, event.id!));
+    final dataState = await _updateRowUseCase(
+        params: (tableName, event.row!, columns[0], event.row![columns[0]]!));
     if (dataState is DataSuccess) {
       List<dynamic> rows = List<dynamic>.of(state.rows!);
-      rows[rows.indexWhere((element) => element['id'] == event.id)] =
-          (rows.firstWhere((element) => element['id'] == event.id)
-                  as Map<String, dynamic>)
-              .map((key, value) => event.row!.keys.contains(key)
-                  ? MapEntry(key, event.row![key])
-                  : MapEntry(key, value));
+      rows[event.id!] = (rows[event.id!] as Map<String, dynamic>).map(
+          (key, value) => event.row!.keys.contains(key)
+              ? MapEntry(key, event.row![key])
+              : MapEntry(key, value));
       emit(TableDone(
           rows: rows,
           columns: state.columns!,
@@ -60,12 +64,11 @@ class TableBloc extends Bloc<TableEvent, TableState> {
   }
 
   Future<void> deleteRow(DeleteRow event, Emitter<TableState> emit) async {
-    final dataState = await _deleteRowUseCase(params: (tableName, event.id!));
+    final dataState = await _deleteRowUseCase(
+        params: (tableName, columns[0], state.rows![event.id!][columns[0]]!));
     if (dataState is DataSuccess) {
       emit(TableDone(
-          rows: List<dynamic>.of(state.rows!)
-            ..removeAt(state.rows!
-                .indexWhere((element) => element['id'] == event.id!)),
+          rows: List<dynamic>.of(state.rows!)..removeAt(event.id!),
           columns: state.columns!,
           columnsTypes: state.columnsTypes!));
     }
@@ -76,14 +79,12 @@ class TableBloc extends Bloc<TableEvent, TableState> {
   }
 
   Future<void> loadTable(LoadTable event, Emitter<TableState> emit) async {
-    final dataState = await _loadTableUseCase(params: tableName);
+    final dataState = await _loadTableUseCase(params: (tableName, columns[0]));
     if (dataState is DataSuccess) {
-      List<String> columns =
-          (dataState.data[0] as Map<String, dynamic>).keys.toList();
       emit(TableDone(
           rows: dataState.data,
           columnsTypes: List.generate(
-              columns.length,
+              (dataState.data as List<dynamic>).isNotEmpty ? columns.length : 0,
               (index) => (dataState.data[0] as Map<String, dynamic>)
                   .values
                   .toList()[index]

@@ -2,33 +2,29 @@ import 'package:postgres/postgres.dart';
 import '../../../../../core/resources/data_state.dart';
 
 class AppDataService {
-  Future<DataState> init() async {
+  Future<DataState> init(String bd, String user, String pass) async {
     try {
       conn = await Connection.open(
         Endpoint(
           host: 'localhost',
-          database: 'forum',
-          username: 'postgres',
-          password: 'password',
+          database: bd,
+          username: user,
+          password: pass,
         ),
         // The postgres server hosted locally doesn't have SSL by default. If you're
         // accessing a postgres server over the Internet, the server should support
         // SSL and you should swap out the mode with `SslMode.verifyFull`.
-        settings: ConnectionSettings(sslMode: SslMode.disable),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
       return const DataSuccess(true);
-    } on ServerException catch (e) {
-      return DataFailedMessage(e.message.toString());
+    } catch (e) {
+      return DataFailedMessage(e.toString());
     }
   }
 
-  late final Connection conn;
+  late Connection conn;
 
   Future<DataState<(List<String>, List<List<String>>)>> showTables() async {
-    DataState datastate = await init();
-    if (datastate is DataFailedMessage) {
-      return datastate as DataFailedMessage<(List<String>, List<List<String>>)>;
-    }
     try {
       List<List<String>> tablesColumns = [];
       final result0 = await conn.execute(
@@ -61,11 +57,10 @@ ORDER BY
     }
   }
 
-  Future<DataState<Result>> readTable(String tableName) async {
+  Future<DataState<Result>> readTable(String tableName, String columnId) async {
     try {
-      final result1 = tableName.contains('_')
-          ? await conn.execute('SELECT * FROM $tableName')
-          : await conn.execute('SELECT * FROM $tableName ORDER BY id ASC ');
+      final result1 = await conn
+          .execute('SELECT * FROM $tableName ORDER BY $columnId ASC ');
       return DataSuccess(result1);
     } on ServerException catch (e) {
       return DataFailedMessage(e.message.toString());
@@ -97,8 +92,8 @@ ORDER BY
     }
   }
 
-  Future<DataState> updateRow(
-      String tableName, Map<String, dynamic> row, int id) async {
+  Future<DataState> updateRow(String tableName, String columnId,
+      Map<String, dynamic> row, int id) async {
     try {
       List<String> columns = row.keys.toList();
       String args = '';
@@ -110,7 +105,8 @@ ORDER BY
         }
       }
 
-      await conn.execute(Sql.named('UPDATE $tableName SET $args WHERE id=$id'),
+      await conn.execute(
+          Sql.named('UPDATE $tableName SET $args WHERE $columnId=$id'),
           parameters: row);
       return const DataSuccess(true);
     } on ServerException catch (e) {
@@ -118,10 +114,49 @@ ORDER BY
     }
   }
 
-  Future<DataState> deleteRow(String tableName, int id) async {
+  Future<DataState> deleteRow(String tableName, String columnId, int id) async {
     try {
-      await conn.execute('DELETE FROM $tableName WHERE id = $id');
+      await conn.execute('DELETE FROM $tableName WHERE $columnId = $id');
       return const DataSuccess(true);
+    } on ServerException catch (e) {
+      return DataFailedMessage(e.message.toString());
+    }
+  }
+
+  Future<DataState> loadMetrics() async {
+    try {
+      // сколько заказов за каждый месяц в 23
+      final result = await conn.execute(Sql.named('''
+SELECT EXTRACT(MONTH FROM start_date) AS month, COUNT(order_id) AS orders_count
+FROM orders
+WHERE EXTRACT(YEAR FROM start_date) = 2023
+GROUP BY EXTRACT(MONTH FROM start_date)
+ORDER BY EXTRACT(MONTH FROM start_date);
+'''));
+// количество новых клиентов впервые сделавших заказ по месяцам в 23
+      final result1 = await conn.execute(Sql.named('''
+SELECT EXTRACT(MONTH FROM first_order_date) AS month,
+       COUNT(DISTINCT client_id) AS new_customers
+FROM (
+    SELECT client_id,
+           MIN(start_date) AS first_order_date
+    FROM orders
+    GROUP BY client_id
+) 
+GROUP BY EXTRACT(MONTH FROM first_order_date)
+ORDER BY month;
+'''));
+      // Наиболее частая деталь в заказе
+      final result2 = await conn.execute(Sql.named('''
+SELECT pc_part.pc_part_id, name, COUNT(*) AS total_orders
+FROM  public.pc_part
+JOIN public.services_pc_part ON pc_part.pc_part_id = services_pc_part.pc_part_id
+JOIN public.orders_services ON services_pc_part.service_id = orders_services.service_id
+GROUP BY pc_part.pc_part_id, name
+ORDER BY total_orders DESC
+'''));
+
+      return DataSuccess((result, result1, result2));
     } on ServerException catch (e) {
       return DataFailedMessage(e.message.toString());
     }

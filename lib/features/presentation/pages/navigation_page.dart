@@ -75,20 +75,20 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
     if (e is PaneItem) return buildPaneItem(e);
     return e;
   }).toList();
-  late final List<NavigationPaneItem> footerItems = [
-    PaneItemSeparator(),
-    PaneItem(
-      key: const ValueKey('/settings'),
-      icon: const Icon(FluentIcons.settings),
-      title: const Text('Settings'),
-      body: const SizedBox.shrink(),
-      onTap: () {
-        if (GoRouterState.of(context).uri.toString() != '/settings') {
-          context.go('/settings');
-        }
-      },
-    )
-  ];
+  // late final List<NavigationPaneItem> footerItems = [
+  //   PaneItemSeparator(),
+  //   PaneItem(
+  //     key: const ValueKey('/settings'),
+  //     icon: const Icon(FluentIcons.settings),
+  //     title: const Text('Settings'),
+  //     body: const SizedBox.shrink(),
+  //     onTap: () {
+  //       if (GoRouterState.of(context).uri.toString() != '/settings') {
+  //         context.go('/settings');
+  //       }
+  //     },
+  //   )
+  // ];
 
   @override
   void initState() {
@@ -111,22 +111,23 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
         .toList()
         .indexWhere((item) => item.key == Key(location));
 
-    if (indexOriginal == -1) {
-      int indexFooter = footerItems
-          .where((element) => element.key != null)
-          .toList()
-          .indexWhere((element) => element.key == Key(location));
-      if (indexFooter == -1) {
-        return 0;
-      }
-      return originalItems
-              .where((element) => element.key != null)
-              .toList()
-              .length +
-          indexFooter;
-    } else {
-      return indexOriginal;
-    }
+    // if (indexOriginal == -1) {
+    //   int indexFooter = footerItems
+    //       .where((element) => element.key != null)
+    //       .toList()
+    //       .indexWhere((element) => element.key == Key(location));
+    //   if (indexFooter == -1) {
+    //     return 0;
+    //   }
+    //   return originalItems
+    //           .where((element) => element.key != null)
+    //           .toList()
+    //           .length +
+    //       indexFooter;
+    // }
+    // else {
+    return indexOriginal;
+    // }
   }
 
   @override
@@ -151,6 +152,7 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
           child: NavigationView(
             key: viewKey,
             appBar: NavigationAppBar(
+              actions: const WindowButtons(),
               automaticallyImplyLeading: false,
               leading: () {
                 final enabled = Navigator.canPop(context);
@@ -206,26 +208,26 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
                   ),
                 );
               }(),
-              actions: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.only(end: 8.0),
-                    child: ToggleSwitch(
-                      content: const Text('Dark Mode'),
-                      checked: FluentTheme.of(context).brightness.isDark,
-                      onChanged: (v) {
-                        if (v) {
-                          appTheme.mode = ThemeMode.dark;
-                        } else {
-                          appTheme.mode = ThemeMode.light;
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                if (!kIsWeb) const WindowButtons(),
-              ]),
+              // actions: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              //   Align(
+              //     alignment: AlignmentDirectional.centerEnd,
+              //     child: Padding(
+              //       padding: const EdgeInsetsDirectional.only(end: 8.0),
+              //       child: ToggleSwitch(
+              //         content: const Text('Dark Mode'),
+              //         checked: FluentTheme.of(context).brightness.isDark,
+              //         onChanged: (v) {
+              //           if (v) {
+              //             appTheme.mode = ThemeMode.dark;
+              //           } else {
+              //             appTheme.mode = ThemeMode.light;
+              //           }
+              //         },
+              //       ),
+              //     ),
+              //   ),
+              //   if (!kIsWeb) const WindowButtons(),
+              // ]),
             ),
             paneBodyBuilder: (item, child) {
               // ignore: unused_local_variable
@@ -234,7 +236,7 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
               return widget.child;
             },
             pane: NavigationPane(
-              displayMode: PaneDisplayMode.compact,
+              displayMode: PaneDisplayMode.top,
               selected: _calculateSelectedIndex(context),
               header: SizedBox(
                 height: kOneLineTileHeight,
@@ -251,8 +253,8 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
                       ).createShader(rect);
                     },
                     child: const Text(
-                      'Postgres db',
-                      style: TextStyle(fontSize: 25),
+                      'Artem db',
+                      style: TextStyle(fontSize: 22),
                     )),
               ),
               indicator: () {
@@ -265,7 +267,7 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
                 }
               }(),
               items: originalItems,
-              footerItems: footerItems,
+              //footerItems: footerItems,
             ),
             onOpenSearch: searchFocusNode.requestFocus,
           )),

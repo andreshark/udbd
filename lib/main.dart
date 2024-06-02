@@ -6,7 +6,8 @@ import 'package:system_theme/system_theme.dart';
 import 'package:udbd/core/app_bloc_observer.dart';
 import 'package:udbd/core/theme/theme.dart';
 import 'package:udbd/features/presentation/bloc/local_data/local_data_bloc.dart';
-import 'package:udbd/features/presentation/bloc/local_data/local_data_event.dart';
+import 'package:udbd/features/presentation/bloc/metric_data/metric_bloc.dart';
+import 'package:udbd/features/presentation/bloc/metric_data/metric_event.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -72,8 +73,10 @@ void main() async {
 
       return runApp(MultiBlocProvider(providers: [
         BlocProvider<AppTheme>(create: (context) => sl()),
+        BlocProvider<MetricBloc>(
+            create: (context) => sl()..add(const LoadMetrics())),
         BlocProvider<LocalDataBloc>(
-          create: (context) => sl()..add(const ReadTables()),
+          create: (context) => sl(),
         ),
       ], child: const MyApp()));
     },
@@ -89,19 +92,50 @@ class MyApp extends StatelessWidget {
     final appTheme = context.watch<AppTheme>();
     return FluentApp.router(
       title: 'Discord sender',
-      themeMode: appTheme.mode,
+      themeMode: ThemeMode.dark,
       debugShowCheckedModeBanner: false,
-      color: appTheme.color,
+      color: const Color(0xffebaee9),
       darkTheme: FluentThemeData(
+        accentColor: Colors.purple,
+        dialogTheme: const ContentDialogThemeData(
+            actionsDecoration: BoxDecoration(
+              color: Color(0xff2e0773),
+            ),
+            decoration: BoxDecoration(
+              color: Color(0xff1A0D29),
+            )),
         brightness: Brightness.dark,
-        accentColor: appTheme.color,
+        scaffoldBackgroundColor: const Color(0xff1A0D29),
+        buttonTheme: ButtonThemeData.all(ButtonStyle(
+            textStyle: ButtonState.all(TextStyle(color: Colors.black)),
+            shape: ButtonState.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            backgroundColor:
+                ButtonState.resolveWith<Color?>((Set<ButtonStates> states) {
+              if (states.contains(ButtonStates.hovering)) {
+                return const Color(0xffebaee9);
+              }
+              if (states.contains(ButtonStates.disabled)) {
+                return const Color(0xff2e0773);
+              }
+              if (states.contains(ButtonStates.pressing)) {
+                return const Color(0xffAa014A);
+              }
+              return const Color(0xffFFDEFE);
+            }))),
+        navigationPaneTheme: const NavigationPaneThemeData(
+            backgroundColor: Color(0xff2e0773),
+            highlightColor: Color(0xffFFDEFE)),
         visualDensity: VisualDensity.standard,
         focusTheme: FocusThemeData(
           glowFactor: is10footScreen(context) ? 2.0 : 0.0,
         ),
+        cardColor: const Color(0xff6F23F3),
       ),
       theme: FluentThemeData(
-        accentColor: appTheme.color,
         visualDensity: VisualDensity.standard,
         focusTheme: FocusThemeData(
           glowFactor: is10footScreen(context) ? 2.0 : 0.0,

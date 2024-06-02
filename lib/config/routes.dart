@@ -1,5 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:udbd/features/presentation/pages/metrics_page.dart';
 import 'package:udbd/features/presentation/pages/tables_page.dart';
 
 import '../features/presentation/pages/navigation_page.dart';
@@ -24,8 +25,8 @@ class AppRoutes {
 
             /// Settings
             GoRoute(
-                path: '/settings',
-                builder: (context, state) => const Settings())
+                path: '/metrics',
+                builder: (context, state) => const MetricsPage())
           ]),
     ]);
   }

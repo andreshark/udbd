@@ -69,7 +69,7 @@ class _TableInfoPagetate extends State<TableInfoPage> {
                 width: 15,
               ),
               FilledButton(
-                  child: Text('Add row'),
+                  child: const Text('Add row'),
                   onPressed: () {
                     editTableDialog(
                         context1: context,
@@ -83,7 +83,10 @@ class _TableInfoPagetate extends State<TableInfoPage> {
                 width: 15,
               ),
               OutlinedButton(
-                  child: const Text('Refresh'),
+                  child: const Text(
+                    'Refresh',
+                    style: TextStyle(color: Colors.black),
+                  ),
                   onPressed: () {
                     BlocProvider.of<TableBloc>(context).add(const LoadTable());
                   }),
@@ -116,6 +119,7 @@ class _TableInfoPagetate extends State<TableInfoPage> {
                               columns: BlocProvider.of<TableBloc>(context)
                                   .state
                                   .columns!,
+                              id: index,
                               columnsType: BlocProvider.of<TableBloc>(context)
                                   .state
                                   .columnsTypes!,
@@ -123,29 +127,7 @@ class _TableInfoPagetate extends State<TableInfoPage> {
                                   .state
                                   .rows![index]);
                         },
-                        child: BlocProvider.of<TableBloc>(context)
-                                        .state
-                                        .columns!
-                                        .length -
-                                    1 ==
-                                indexRow
-                            ? Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Text(rowText(context, index, indexRow)),
-                                  IconButton(
-                                      icon: const Icon(FluentIcons.delete),
-                                      onPressed: () {
-                                        BlocProvider.of<TableBloc>(context).add(
-                                            DeleteRow(
-                                                id: BlocProvider.of<TableBloc>(
-                                                        context)
-                                                    .state
-                                                    .rows![index]['id']));
-                                      })
-                                ],
-                              )
-                            : Text(rowText(context, index, indexRow)),
+                        child: Text(rowText(context, index, indexRow)),
                       ));
                     },
                   ),
@@ -173,13 +155,11 @@ class _TableInfoPagetate extends State<TableInfoPage> {
   }
 
   String rowText(context, int index, int indexRow) {
-    if (BlocProvider.of<TableBloc>(context)
-        .state
-        .columns![indexRow]
-        .contains('date')) {
-      return DateFormat('yyyy-MM-dd').format(
-          BlocProvider.of<TableBloc>(context).state.rows![index]
-              [BlocProvider.of<TableBloc>(context).state.columns![indexRow]]);
+    if (BlocProvider.of<TableBloc>(context).state.columnsTypes![indexRow] ==
+        DateTime) {
+      final data = BlocProvider.of<TableBloc>(context).state.rows![index]
+          [BlocProvider.of<TableBloc>(context).state.columns![indexRow]];
+      return data == null ? '' : DateFormat('yyyy-MM-dd').format(data);
     }
 
     return BlocProvider.of<TableBloc>(context)
@@ -193,6 +173,7 @@ class _TableInfoPagetate extends State<TableInfoPage> {
       {required BuildContext context1,
       Map<String, dynamic>? row,
       required List<String> columns,
+      int? id,
       required List<Type> columnsType}) async {
     // ignore: unused_local_variable
     final result = await showDialog<bool>(
@@ -217,8 +198,34 @@ class _TableInfoPagetate extends State<TableInfoPage> {
                             .add(InsertRow(row: result));
                       } else {
                         BlocProvider.of<TableBloc>(context1)
-                            .add(UpdateRow(row: result, id: row['id']));
+                            .add(UpdateRow(row: result, id: id!));
                       }
+
+                      Navigator.pop(context);
+                    },
+                  ),
+                  FilledButton(
+                    style: ButtonStyle(backgroundColor:
+                        ButtonState.resolveWith<Color?>(
+                            (Set<ButtonStates> states) {
+                      if (states.contains(ButtonStates.hovering)) {
+                        return Colors.red.lighter;
+                      }
+                      if (states.contains(ButtonStates.disabled)) {
+                        return Colors.red.darkest;
+                      }
+                      if (states.contains(ButtonStates.none)) {
+                        return Colors.red;
+                      }
+                      if (states.contains(ButtonStates.pressing)) {
+                        return Colors.red.lightest;
+                      }
+                      return Colors.red;
+                    })),
+                    child: const Text('Delete'),
+                    onPressed: () {
+                      BlocProvider.of<TableBloc>(context1)
+                          .add(DeleteRow(id: id!));
 
                       Navigator.pop(context);
                     },
@@ -274,6 +281,9 @@ class _TableInfoPagetate extends State<TableInfoPage> {
                                   )
                                 : (columnsType[index] == bool)
                                     ? ComboBox<bool>(
+                                        popupColor: const Color(0xff420aa3),
+                                        style: TextStyle(color: Colors.black),
+                                        focusColor: const Color(0xff420aa3),
                                         value: result[columns[index]] ??
                                             ((row == null)
                                                 ? null

@@ -18,7 +18,7 @@ class DeleteRow extends TableEvent {
 
 class UpdateRow extends TableEvent {
   const UpdateRow({required Map<String, dynamic> row, required int id})
-      : super(id: id, row: row);
+      : super(row: row, id: id);
 
   @override
   List<Object> get props => [id!, row!];

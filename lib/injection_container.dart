@@ -5,11 +5,14 @@ import 'package:udbd/core/theme/theme.dart';
 import 'package:udbd/features/data/app_data_service.dart';
 import 'package:udbd/features/data/local_data_repository_impl.dart';
 import 'package:udbd/features/domain/usecases/delete_row.dart';
+import 'package:udbd/features/domain/usecases/init_table.dart';
 import 'package:udbd/features/domain/usecases/insert_row.dart';
+import 'package:udbd/features/domain/usecases/load_metrics.dart';
 import 'package:udbd/features/domain/usecases/load_table.dart';
 import 'package:udbd/features/domain/usecases/show_tables.dart';
 import 'package:udbd/features/domain/usecases/update_row.dart';
 import 'package:udbd/features/presentation/bloc/local_data/local_data_bloc.dart';
+import 'package:udbd/features/presentation/bloc/metric_data/metric_bloc.dart';
 import 'package:udbd/features/presentation/bloc/table/table_bloc.dart';
 import 'config/routes.dart';
 
@@ -34,10 +37,14 @@ Future<void> initializeDependencies(
   sl.registerLazySingleton<DeleteRowUseCase>(() => DeleteRowUseCase(sl()));
   sl.registerLazySingleton<InsertRowUseCase>(() => InsertRowUseCase(sl()));
   sl.registerLazySingleton<UpdateRowUseCase>(() => UpdateRowUseCase(sl()));
+  sl.registerLazySingleton<InitTableUseCase>(() => InitTableUseCase(sl()));
+  sl.registerLazySingleton<LoadMetricsUseCase>(() => LoadMetricsUseCase(sl()));
 
   //blocs
-  sl.registerLazySingleton<LocalDataBloc>(() => LocalDataBloc(sl()));
+  sl.registerLazySingleton<LocalDataBloc>(() => LocalDataBloc(sl(), sl()));
   sl.registerLazySingleton<AppTheme>(() => AppTheme());
-  sl.registerFactoryParam<TableBloc, String, void>(
-      (tableName, _) => TableBloc(sl(), sl(), sl(), tableName, sl()));
+  sl.registerLazySingleton<MetricBloc>(() => MetricBloc(sl()));
+  sl.registerFactoryParam<TableBloc, String, List<String>>(
+      (tableName, columns) =>
+          TableBloc(sl(), sl(), sl(), sl(), tableName, columns));
 }
