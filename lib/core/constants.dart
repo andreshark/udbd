@@ -1,5 +1,6 @@
 import 'package:flutter_acrylic/window_effect.dart';
 
+const programName = 'Emil DB';
 const List<String> accentColorNames = [
   'System',
   'Yellow',

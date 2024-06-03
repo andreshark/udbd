@@ -1,6 +1,8 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:udbd/features/presentation/bloc/local_data/local_data_event.dart';
+import 'package:udbd/features/presentation/bloc/metric_data/metric_bloc.dart';
+import 'package:udbd/features/presentation/bloc/metric_data/metric_event.dart';
 import 'package:udbd/features/presentation/bloc/table/table_bloc.dart';
 import 'package:udbd/features/presentation/bloc/table/table_event.dart';
 import 'package:udbd/features/presentation/pages/table_info_page.dart';

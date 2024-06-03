@@ -135,15 +135,15 @@ ORDER BY EXTRACT(MONTH FROM start_date);
 '''));
 // количество новых клиентов впервые сделавших заказ по месяцам в 23
       final result1 = await conn.execute(Sql.named('''
-SELECT EXTRACT(MONTH FROM first_order_date) AS month,
-       COUNT(DISTINCT client_id) AS new_customers
+SELECT EXTRACT(MONTH FROM d.first_order_date) AS month,
+       COUNT(DISTINCT d.client_id) AS new_customers
 FROM (
     SELECT client_id,
            MIN(start_date) AS first_order_date
     FROM orders
     GROUP BY client_id
-) 
-GROUP BY EXTRACT(MONTH FROM first_order_date)
+) as d
+GROUP BY EXTRACT(MONTH FROM d.first_order_date)
 ORDER BY month;
 '''));
       // Наиболее частая деталь в заказе

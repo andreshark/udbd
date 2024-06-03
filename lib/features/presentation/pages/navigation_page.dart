@@ -2,6 +2,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:udbd/core/constants.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as flutter_acrylic;
 import '../../../core/theme/theme.dart';
@@ -253,7 +254,7 @@ class _NavigationPageState extends State<NavigationPage> with WindowListener {
                       ).createShader(rect);
                     },
                     child: const Text(
-                      'Artem db',
+                      programName,
                       style: TextStyle(fontSize: 22),
                     )),
               ),

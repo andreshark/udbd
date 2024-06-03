@@ -42,9 +42,9 @@ class MetricsPage extends StatelessWidget {
             child: Wrap(
               children: [
                 SfCartesianChart(
-                  legend: Legend(isVisible: true),
-                  primaryXAxis: CategoryAxis(),
-                  primaryYAxis: NumericAxis(
+                  legend: const Legend(isVisible: true),
+                  primaryXAxis: const CategoryAxis(),
+                  primaryYAxis: const NumericAxis(
                       // axisLabelFormatter: (axisLabelRenderArgs) {
                       //   return ChartAxisLabel(
                       //       NumberFormat.compact()

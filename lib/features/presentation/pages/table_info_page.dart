@@ -7,6 +7,8 @@ import 'package:udbd/features/presentation/bloc/table/table_state.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/theme.dart';
+import '../bloc/metric_data/metric_bloc.dart';
+import '../bloc/metric_data/metric_event.dart';
 import '../widgets/error_dialog.dart';
 import '../widgets/loader.dart';
 import '../widgets/window_buttons.dart';
@@ -27,6 +29,9 @@ class _TableInfoPagetate extends State<TableInfoPage> {
       listener: (context, state) {
         if (state is TableError) {
           showErrorDialog(context, state.errorMessage!, 'Data error');
+        }
+        if (state is TableDone) {
+          BlocProvider.of<MetricBloc>(context).add(const LoadMetrics());
         }
       },
       builder: (context, state) {

@@ -1,4 +1,5 @@
 import 'package:udbd/core/constants.dart';
+
 import '../../domain/entities/order_metric.dart';
 
 class OrderMetricModel extends OrderMetricEntity {
