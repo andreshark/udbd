@@ -1,17 +1,16 @@
-import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart' as mat;
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:udbd/features/presentation/bloc/table/table_bloc.dart';
 import 'package:udbd/features/presentation/bloc/table/table_event.dart';
 import 'package:udbd/features/presentation/bloc/table/table_state.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:intl/intl.dart';
-import '../../../core/theme/theme.dart';
-import '../bloc/metric_data/metric_bloc.dart';
-import '../bloc/metric_data/metric_event.dart';
+import 'package:udbd/features/presentation/widgets/error_snackbar.dart';
+import '../bloc/local_data/local_data_bloc.dart';
+import '../bloc/local_data/local_data_event.dart';
 import '../widgets/error_dialog.dart';
 import '../widgets/loader.dart';
-import '../widgets/window_buttons.dart';
+import 'edit_table_page.dart';
 
 class TableInfoPage extends StatefulWidget {
   const TableInfoPage({super.key});
@@ -21,17 +20,19 @@ class TableInfoPage extends StatefulWidget {
 }
 
 class _TableInfoPagetate extends State<TableInfoPage> {
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      GlobalKey<RefreshIndicatorState>();
+
   @override
   Widget build(BuildContext context) {
-    context.watch<AppTheme>();
-    FluentTheme.of(context);
     return BlocConsumer<TableBloc, TableState>(
       listener: (context, state) {
         if (state is TableError) {
-          showErrorDialog(context, state.errorMessage!, 'Data error');
+          showErrorSnackBar(context, state.errorMessage!, 'Data error');
         }
         if (state is TableDone) {
-          BlocProvider.of<MetricBloc>(context).add(const LoadMetrics());
+          debugPrint('52');
+          BlocProvider.of<LocalDataBloc>(context).add(const ReadTables());
         }
       },
       builder: (context, state) {
@@ -52,111 +53,99 @@ class _TableInfoPagetate extends State<TableInfoPage> {
   }
 
   Widget _buildbody(BuildContext context) {
-    return NavigationView(
-        appBar: NavigationAppBar(
-          title: () {
-            const title = Text('Postgres db');
-
-            return const DragToMoveArea(
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: title,
-              ),
-            );
-          }(),
-          actions: const WindowButtons(),
+    return Scaffold(
+        appBar:
+            AppBar(title: Text(BlocProvider.of<TableBloc>(context).tableName)),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) {
+              return BlocProvider.value(
+                value: BlocProvider.of<TableBloc>(
+                    context), // use the injected context
+                child: EditTablePage(
+                    columns: BlocProvider.of<TableBloc>(context).state.columns!,
+                    columnsType: BlocProvider.of<TableBloc>(context)
+                        .state
+                        .columnsTypes!),
+              );
+            }));
+          },
+          child: const Icon(Icons.add),
         ),
-        content: ScaffoldPage(
-            content: ListView(children: [
-          Row(
-            children: [
-              const SizedBox(
-                width: 15,
-              ),
-              FilledButton(
-                  child: const Text('Add row'),
-                  onPressed: () {
-                    editTableDialog(
-                        context1: context,
-                        columns:
-                            BlocProvider.of<TableBloc>(context).state.columns!,
-                        columnsType: BlocProvider.of<TableBloc>(context)
+        body: RefreshIndicator(
+            key: _refreshIndicatorKey,
+            strokeWidth: 4.0,
+            onRefresh: () async {
+              BlocProvider.of<TableBloc>(context).add(const LoadTable());
+            },
+            // Pull from top to show refresh indicator.
+            child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                scrollDirection: Axis.vertical,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                      showBottomBorder: true,
+                      columns: List.generate(
+                        BlocProvider.of<TableBloc>(context)
                             .state
-                            .columnsTypes!);
-                  }),
-              const SizedBox(
-                width: 15,
-              ),
-              OutlinedButton(
-                  child: const Text(
-                    'Refresh',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                  onPressed: () {
-                    BlocProvider.of<TableBloc>(context).add(const LoadTable());
-                  }),
-            ],
-          ),
-          mat.DataTable(
-              showBottomBorder: true,
-              columns: List.generate(
-                BlocProvider.of<TableBloc>(context).state.columns!.length,
-                (index) {
-                  return mat.DataColumn(
-                    label: Text(
-                      BlocProvider.of<TableBloc>(context).state.columns![index],
-                      style: TextStyle(fontStyle: FontStyle.italic),
-                    ),
-                  );
-                },
-              ),
-              rows: List.generate(
-                  BlocProvider.of<TableBloc>(context).state.rows!.length,
-                  (index) {
-                return mat.DataRow(
-                  cells: List.generate(
-                    BlocProvider.of<TableBloc>(context).state.columns!.length,
-                    (indexRow) {
-                      return mat.DataCell(GestureDetector(
-                        onTap: () {
-                          editTableDialog(
-                              context1: context,
-                              columns: BlocProvider.of<TableBloc>(context)
+                            .columns!
+                            .length,
+                        (index) {
+                          return DataColumn(
+                            label: Text(
+                              BlocProvider.of<TableBloc>(context)
                                   .state
-                                  .columns!,
-                              id: index,
-                              columnsType: BlocProvider.of<TableBloc>(context)
-                                  .state
-                                  .columnsTypes!,
-                              row: BlocProvider.of<TableBloc>(context)
-                                  .state
-                                  .rows![index]);
+                                  .columns![index],
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                          );
                         },
-                        child: Text(rowText(context, index, indexRow)),
-                      ));
-                    },
-                  ),
-                  color: mat.MaterialStateProperty.resolveWith<Color?>(
-                      (Set<mat.MaterialState> states) {
-                    if (states.contains(mat.MaterialState.hovered)) {
-                      debugPrint('gui');
-                      return index % 2 == 0
-                          ? FluentTheme.of(context)
-                              .accentColor
-                              .withOpacity(0.18)
-                          : FluentTheme.of(context)
-                              .scaffoldBackgroundColor
-                              .withOpacity(0.18);
-                    }
-                    return index % 2 == 0
-                        ? FluentTheme.of(context).accentColor.withOpacity(0.08)
-                        : FluentTheme.of(context)
-                            .scaffoldBackgroundColor
-                            .withOpacity(0.08);
-                  }),
-                );
-              })),
-        ])));
+                      ),
+                      rows: List.generate(
+                          BlocProvider.of<TableBloc>(context)
+                              .state
+                              .rows!
+                              .length, (index) {
+                        return DataRow(
+                          cells: List.generate(
+                            BlocProvider.of<TableBloc>(context)
+                                .state
+                                .columns!
+                                .length,
+                            (indexRow) {
+                              return DataCell(GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .push(MaterialPageRoute(builder: (_) {
+                                    return BlocProvider.value(
+                                      value: BlocProvider.of<TableBloc>(
+                                          context), // use the injected context
+                                      child: EditTablePage(
+                                          columns: BlocProvider.of<TableBloc>(
+                                                  context)
+                                              .state
+                                              .columns!,
+                                          id: index,
+                                          columnsType:
+                                              BlocProvider.of<TableBloc>(
+                                                      context)
+                                                  .state
+                                                  .columnsTypes!,
+                                          row: BlocProvider.of<TableBloc>(
+                                                  context)
+                                              .state
+                                              .rows![index]),
+                                    );
+                                  }));
+                                },
+                                child: Text(rowText(context, index, indexRow)),
+                              ));
+                            },
+                          ),
+                        );
+                      })),
+                ))));
   }
 
   String rowText(context, int index, int indexRow) {
@@ -172,165 +161,5 @@ class _TableInfoPagetate extends State<TableInfoPage> {
         .rows![index]
             [BlocProvider.of<TableBloc>(context).state.columns![indexRow]]
         .toString();
-  }
-
-  void editTableDialog(
-      {required BuildContext context1,
-      Map<String, dynamic>? row,
-      required List<String> columns,
-      int? id,
-      required List<Type> columnsType}) async {
-    // ignore: unused_local_variable
-    final result = await showDialog<bool>(
-        context: context1,
-        builder: (context) {
-          Map<String, dynamic> result = {};
-          List<bool> emptyText = row != null
-              ? List<bool>.filled(columns.length, true)
-              : List<bool>.filled(columns.length, false);
-          return StatefulBuilder(builder: (context, StateSetter setState) {
-            return ContentDialog(
-                actions: [
-                  FilledButton(
-                    child: const Text('Save'),
-                    onPressed: () {
-                      if (emptyText.any((element) => element == false)) {
-                        return;
-                      }
-
-                      if (row == null) {
-                        BlocProvider.of<TableBloc>(context1)
-                            .add(InsertRow(row: result));
-                      } else {
-                        BlocProvider.of<TableBloc>(context1)
-                            .add(UpdateRow(row: result, id: id!));
-                      }
-
-                      Navigator.pop(context);
-                    },
-                  ),
-                  FilledButton(
-                    style: ButtonStyle(backgroundColor:
-                        ButtonState.resolveWith<Color?>(
-                            (Set<ButtonStates> states) {
-                      if (states.contains(ButtonStates.hovering)) {
-                        return Colors.red.lighter;
-                      }
-                      if (states.contains(ButtonStates.disabled)) {
-                        return Colors.red.darkest;
-                      }
-                      if (states.contains(ButtonStates.none)) {
-                        return Colors.red;
-                      }
-                      if (states.contains(ButtonStates.pressing)) {
-                        return Colors.red.lightest;
-                      }
-                      return Colors.red;
-                    })),
-                    child: const Text('Delete'),
-                    onPressed: () {
-                      BlocProvider.of<TableBloc>(context1)
-                          .add(DeleteRow(id: id!));
-
-                      Navigator.pop(context);
-                    },
-                  ),
-                  FilledButton(
-                    child: const Text('Cancel'),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-                constraints: BoxConstraints(maxHeight: 600, maxWidth: 600),
-                title: const Text('Редактирование строки'),
-                content: Wrap(
-                    children: List.generate(
-                  columns.length,
-                  (index) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(columns[index]),
-                        (columnsType[index] == int ||
-                                columnsType[index] == double)
-                            ? NumberBox(
-                                value: ((row == null)
-                                    ? 0
-                                    : (columnsType[index] != double)
-                                        ? row[columns[index]] as int
-                                        : row[columns[index]] as double),
-                                smallChange:
-                                    columnsType[index] == double ? 0.1 : 1,
-                                onChanged: (value) {
-                                  if (value == null) {
-                                    emptyText[index] = false;
-                                  } else {
-                                    emptyText[index] = true;
-                                    if (columnsType[index] != double) {
-                                      result[columns[index]] =
-                                          (value as double).round();
-                                    }
-                                  }
-                                },
-                              )
-                            : (columnsType[index] == DateTime)
-                                ? DatePicker(
-                                    selected: result[columns[index]] ??
-                                        ((row == null)
-                                            ? null
-                                            : row[columns[index]]),
-                                    onChanged: (value) {
-                                      result[columns[index]] = value;
-                                      emptyText[index] = true;
-                                      setState(() {});
-                                    },
-                                  )
-                                : (columnsType[index] == bool)
-                                    ? ComboBox<bool>(
-                                        popupColor: const Color(0xff420aa3),
-                                        style: TextStyle(color: Colors.black),
-                                        focusColor: const Color(0xff420aa3),
-                                        value: result[columns[index]] ??
-                                            ((row == null)
-                                                ? null
-                                                : row[columns[index]]),
-                                        items: const [
-                                          ComboBoxItem(
-                                            value: false,
-                                            child: Text('false'),
-                                          ),
-                                          ComboBoxItem(
-                                            value: true,
-                                            child: Text('true'),
-                                          )
-                                        ],
-                                        onChanged: (value) {
-                                          result[columns[index]] = value;
-                                          if (value == null) {
-                                            emptyText[index] = false;
-                                          } else {
-                                            emptyText[index] = true;
-                                          }
-                                          setState(() {});
-                                        },
-                                      )
-                                    : TextFormBox(
-                                        initialValue: ((row == null)
-                                            ? ''
-                                            : row[columns[index]]),
-                                        onChanged: (value) {
-                                          result[columns[index]] = value;
-                                          if (value.isEmpty) {
-                                            emptyText[index] = false;
-                                          } else {
-                                            emptyText[index] = true;
-                                          }
-                                        },
-                                      )
-                      ],
-                    );
-                  },
-                )));
-          });
-        });
   }
 }

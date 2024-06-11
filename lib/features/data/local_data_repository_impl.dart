@@ -70,4 +70,17 @@ class LocalDataRepositoryImpl extends LocalDataRepository {
   Future<DataState> initTable(String bd, String user, String pass) {
     return appDataService.init(bd, user, pass);
   }
+
+  @override
+  Future<DataState<(List, List)>> getOrders() async {
+    DataState response = await appDataService.getOrders();
+    if (response is DataSuccess) {
+      List<dynamic> orderRows =
+          response.data.$1.map((element) => element.toColumnMap()).toList();
+      List<dynamic> productRows =
+          response.data.$2.map((element) => element.toColumnMap()).toList();
+      return DataSuccess((orderRows, productRows));
+    }
+    return DataFailedMessage(response.errorMessage!);
+  }
 }

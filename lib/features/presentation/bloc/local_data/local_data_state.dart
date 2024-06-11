@@ -5,9 +5,16 @@ abstract class LocalDataState extends Equatable {
   final List<List<String>>? tablesColumns;
   final String? errorMessage;
   final String? dbName;
+  final List<dynamic>? product_rows;
+  final List<dynamic>? order_rows;
 
   const LocalDataState(
-      {this.tables, this.tablesColumns, this.errorMessage, this.dbName});
+      {this.product_rows,
+      this.order_rows,
+      this.tables,
+      this.tablesColumns,
+      this.errorMessage,
+      this.dbName});
 }
 
 class LocalDataLoading extends LocalDataState {
@@ -26,11 +33,19 @@ class LocalDataWainting extends LocalDataState {
 
 class LocalDataDone extends LocalDataState {
   const LocalDataDone(
-      {required List<String> tables, required List<List<String>> tablesColumns})
-      : super(tables: tables, tablesColumns: tablesColumns);
+      {required List<String> tables,
+      required List<List<String>> tablesColumns,
+      required List<dynamic> product_rows,
+      required List<dynamic> order_rows})
+      : super(
+            tables: tables,
+            tablesColumns: tablesColumns,
+            product_rows: product_rows,
+            order_rows: order_rows);
 
   @override
-  List<Object> get props => [tables!, tablesColumns!];
+  List<Object> get props =>
+      [tables!, tablesColumns!, product_rows!, order_rows!];
 }
 
 class LocalDataError extends LocalDataState {

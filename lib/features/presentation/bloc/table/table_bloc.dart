@@ -31,8 +31,12 @@ class TableBloc extends Bloc<TableEvent, TableState> {
   }
 
   Future<void> updateRow(UpdateRow event, Emitter<TableState> emit) async {
-    final dataState = await _updateRowUseCase(
-        params: (tableName, event.row!, columns[0], event.row![columns[0]]!));
+    final dataState = await _updateRowUseCase(params: (
+      tableName,
+      event.row!,
+      columns[0],
+      (state.rows![event.id!] as Map<String, dynamic>).values.first
+    ));
     if (dataState is DataSuccess) {
       List<dynamic> rows = List<dynamic>.of(state.rows!);
       rows[event.id!] = (rows[event.id!] as Map<String, dynamic>).map(

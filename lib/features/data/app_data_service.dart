@@ -6,10 +6,17 @@ class AppDataService {
     try {
       conn = await Connection.open(
         Endpoint(
-          host: 'localhost',
-          database: bd,
-          username: user,
-          password: pass,
+          // host: 'localhost',
+          // port: 5432,
+          // database: 'delivery',
+          // username: 'postgres',
+          // password: '123',
+
+          host: 'aws-0-eu-central-1.pooler.supabase.com',
+          port: 6543,
+          database: 'postgres',
+          username: 'postgres.kzpnalhbwgrqgauzyxcg',
+          password: 'YmYYCu1LdGusZczY',
         ),
         // The postgres server hosted locally doesn't have SSL by default. If you're
         // accessing a postgres server over the Internet, the server should support
@@ -62,6 +69,39 @@ ORDER BY
       final result1 = await conn
           .execute('SELECT * FROM $tableName ORDER BY $columnId ASC ');
       return DataSuccess(result1);
+    } on ServerException catch (e) {
+      return DataFailedMessage(e.message.toString());
+    }
+  }
+
+  Future<DataState<(Result, Result)>> getOrders() async {
+    try {
+      final result = await conn.execute('''
+SELECT
+    o.id AS "id",
+    c.first_name || ' ' || c.last_name AS "customer_name",
+	c.address  AS "customer_addres",
+	c.phone  AS "customer_phone",
+    d.first_name || ' ' || d.last_name AS "driver_name",
+    d.vehicle_model AS "driver_veh",
+    o.date AS "date",
+    o.status AS "status"
+FROM
+    public.orders o
+    JOIN public.customers c ON o.customer_id = c.id
+    JOIN public.drivers d ON o.driver_id = d.id;''');
+
+      final result1 = await conn.execute('''
+SELECT
+    o.id AS "id",
+    p.product_name AS "name",
+    p.product_price AS "price",
+    op.product_id AS "product_id"
+FROM
+    public.orders o
+    JOIN public.orders_products op ON o.id = op.order_id
+    JOIN public.products p ON op.product_id = p.id;''');
+      return DataSuccess((result, result1));
     } on ServerException catch (e) {
       return DataFailedMessage(e.message.toString());
     }

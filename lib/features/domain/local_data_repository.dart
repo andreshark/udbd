@@ -3,6 +3,13 @@ import '../../../../core/resources/data_state.dart';
 abstract class LocalDataRepository {
   Future<DataState<(List<String>, List<List<String>>)>> showTables();
 
+  Future<
+      DataState<
+          (
+            List<dynamic>,
+            List<dynamic>,
+          )>> getOrders();
+
   Future<DataState> readTable(String tableName, String columnId);
 
   Future<DataState> loadMetrics();

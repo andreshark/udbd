@@ -13,10 +13,7 @@ class AppRoutes {
       ShellRoute(
           navigatorKey: shellNavigatorKey,
           builder: (context, state, child) {
-            return NavigationPage(
-              shellContext: shellNavigatorKey.currentContext,
-              child: child,
-            );
+            return NavigationPage();
           },
           routes: [
             /// Home
@@ -24,9 +21,9 @@ class AppRoutes {
             //GoRoute(path: '/logs', builder: (context, state) => LogsPage()),
 
             /// Settings
-            GoRoute(
-                path: '/metrics',
-                builder: (context, state) => const MetricsPage())
+            // GoRoute(
+            //     path: '/metrics',
+            //     builder: (context, state) => const MetricsPage())
           ]),
     ]);
   }
