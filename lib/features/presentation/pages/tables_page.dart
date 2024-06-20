@@ -7,12 +7,14 @@ import 'package:udbd/features/presentation/bloc/table/table_bloc.dart';
 import 'package:udbd/features/presentation/bloc/table/table_event.dart';
 import 'package:udbd/features/presentation/pages/table_info_page.dart';
 import 'package:udbd/features/presentation/widgets/bd_choose_dialog.dart';
+import 'package:window_manager/window_manager.dart';
 import '../../../core/theme/theme.dart';
 import '../../../injection_container.dart';
 import '../bloc/local_data/local_data_bloc.dart';
 import '../bloc/local_data/local_data_state.dart';
 import '../widgets/error_dialog.dart';
 import '../widgets/loader.dart';
+import '../widgets/window_buttons.dart';
 
 class TablesPage extends StatefulWidget {
   const TablesPage({super.key});
@@ -21,8 +23,19 @@ class TablesPage extends StatefulWidget {
   State<TablesPage> createState() => _TablesPageState();
 }
 
-class _TablesPageState extends State<TablesPage> {
+class _TablesPageState extends State<TablesPage> with WindowListener {
   bool kostil = false;
+  List<IconData> icons = [
+    FluentIcons.accounts,
+    FluentIcons.car,
+    FluentIcons.activate_orders,
+    FluentIcons.settings,
+    FluentIcons.service_activity,
+    FluentIcons.page_header,
+    FluentIcons.account_management,
+    FluentIcons.cube_shape_solid,
+    FluentIcons.settings,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -56,90 +69,131 @@ class _TablesPageState extends State<TablesPage> {
   }
 
   Widget _buildbody(BuildContext context) {
-    return ScaffoldPage(
-        content: Padding(
-            padding: EdgeInsets.only(left: 15, right: 15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  BlocProvider.of<LocalDataBloc>(context).dbName,
-                  style: const TextStyle(
-                      fontSize: 27, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(
-                  height: 15,
-                ),
-                Expanded(
-                    child: ListView(
-                  children: List.generate(
-                      BlocProvider.of<LocalDataBloc>(context)
-                          .state
-                          .tables!
-                          .length, (indexTable) {
-                    return Padding(
-                        padding: EdgeInsets.only(bottom: 15),
-                        child: GestureDetector(
-                            onTap: () {
-                              Navigator.of(
-                                context,
-                                rootNavigator: true,
-                              ).push(FluentPageRoute(builder: (context) {
-                                return BlocProvider<TableBloc>(
-                                    create: (context) => sl(
-                                        param1: BlocProvider.of<LocalDataBloc>(
-                                                context)
-                                            .state
-                                            .tables![indexTable],
-                                        param2: BlocProvider.of<LocalDataBloc>(
-                                                context)
-                                            .state
-                                            .tablesColumns![indexTable]
-                                            .map((column) => column.substring(
-                                                0, column.indexOf('(')))
-                                            .toList())
-                                      ..add(const LoadTable()),
-                                    child: const TableInfoPage());
-                              }));
-                            },
-                            child: Card(
-                              padding: const EdgeInsets.all(20),
-                              child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      BlocProvider.of<LocalDataBloc>(context)
-                                          .state
-                                          .tables![indexTable],
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 22),
-                                    ),
-                                    Row(
-                                      children: List.generate(
-                                        BlocProvider.of<LocalDataBloc>(context)
-                                            .state
-                                            .tablesColumns![indexTable]
-                                            .length,
-                                        (indexColumn) {
-                                          return Padding(
-                                              padding:
-                                                  EdgeInsets.only(right: 10),
-                                              child: Text(BlocProvider
-                                                          .of<LocalDataBloc>(
-                                                              context)
-                                                      .state
-                                                      .tablesColumns![
-                                                  indexTable][indexColumn]));
-                                        },
-                                      ),
-                                    )
-                                  ]),
-                            )));
-                  }),
-                ))
-              ],
-            )));
+    return NavigationView(
+        appBar: NavigationAppBar(
+          title: () {
+            const title = Text('Автосервис');
+
+            return const DragToMoveArea(
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: title,
+              ),
+            );
+          }(),
+          actions: const WindowButtons(),
+        ),
+        content: ScaffoldPage(
+            content: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(
+                      BlocProvider.of<LocalDataBloc>(context).dbName,
+                      style: const TextStyle(
+                          fontSize: 30, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(
+                      height: 15,
+                    ),
+                    Wrap(
+                      spacing: 10,
+                      children: List.generate(
+                          BlocProvider.of<LocalDataBloc>(context)
+                              .state
+                              .tables!
+                              .length, (indexTable) {
+                        return Padding(
+                            padding: EdgeInsets.only(bottom: 15),
+                            child: GestureDetector(
+                                onTap: () {
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).push(FluentPageRoute(builder: (context) {
+                                    return BlocProvider<TableBloc>(
+                                        create: (context) => sl(
+                                            param1:
+                                                BlocProvider.of<LocalDataBloc>(
+                                                        context)
+                                                    .state
+                                                    .tables![indexTable],
+                                            param2: BlocProvider.of<
+                                                    LocalDataBloc>(context)
+                                                .state
+                                                .tablesColumns![indexTable]
+                                                .map((column) =>
+                                                    column.substring(
+                                                        0, column.indexOf('(')))
+                                                .toList())
+                                          ..add(const LoadTable()),
+                                        child: const TableInfoPage());
+                                  }));
+                                },
+                                child: Card(
+                                    padding: const EdgeInsets.all(20),
+                                    child: SizedBox(
+                                      width: 150,
+                                      height: 150,
+                                      child: Center(
+                                          child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Text(
+                                            BlocProvider.of<LocalDataBloc>(
+                                                    context)
+                                                .state
+                                                .tables![indexTable],
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 24),
+                                          ),
+                                          Opacity(
+                                            opacity: 0.3,
+                                            child: ShaderMask(
+                                              shaderCallback: (Rect bounds) {
+                                                return RadialGradient(
+                                                  center: Alignment.topLeft,
+                                                  radius: 1.0,
+                                                  colors: <Color>[
+                                                    Colors.yellow,
+                                                    Colors.blue
+                                                  ],
+                                                  tileMode: TileMode.mirror,
+                                                ).createShader(bounds);
+                                              },
+                                              child: Icon(
+                                                icons[indexTable],
+                                                size: 100,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      )),
+                                    ))));
+                      }),
+                    ),
+                    Spacer(),
+                    const Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Text(
+                        'Это база данных автомобильного сервиса. Состоит из таблиц: car, car mechanic, client, ar part, orders, orders services, services, services car part, stock. В данной программе можно удобно просматривать таблицы, сортируя данные по возрастанию, убыванию или используя индивидуальные параметры для сортировки, сортировка работает с уже имеющиемся данными, не отправляя запросы. Также можно свободно редактировать таблицы, добавлять новые записи и удалять имеющиеся. ',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 16),
+                      ),
+                    ),
+                    Text('@Богдан Камский')
+                  ],
+                ))));
+  }
+
+  @override
+  void onWindowClose() async {
+    bool isPreventClose = await windowManager.isPreventClose();
+    debugPrint('fwe');
+    if (isPreventClose && mounted) {
+      windowManager.destroy();
+    }
   }
 }

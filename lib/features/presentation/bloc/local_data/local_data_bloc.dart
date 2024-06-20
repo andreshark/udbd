@@ -8,20 +8,24 @@ import 'local_data_event.dart';
 class LocalDataBloc extends Bloc<LocalDataEvent, LocalDataState> {
   final ShowTableUseCase _showTableUseCase;
   final InitTableUseCase _initTableUseCase;
-  late final String dbName;
+  final String dbName = 'Car service';
 
   LocalDataBloc(this._showTableUseCase, this._initTableUseCase)
-      : super(const LocalDataWainting()) {
+      : super(const LocalDataLoading()) {
     on<ReadTables>(readTables);
     on<InitTable>(initTable);
   }
 
   Future<void> readTables(
       ReadTables event, Emitter<LocalDataState> emit) async {
-    final dataState = await _showTableUseCase();
+    DataState dataState =
+        await _initTableUseCase(params: ('service', 'postgres', '123'));
     if (dataState is DataSuccess) {
-      emit(LocalDataDone(
-          tables: dataState.data.$1, tablesColumns: dataState.data.$2));
+      final dataState = await _showTableUseCase();
+      if (dataState is DataSuccess) {
+        emit(LocalDataDone(
+            tables: dataState.data.$1, tablesColumns: dataState.data.$2));
+      }
     }
 
     if (dataState is DataFailedMessage) {
@@ -33,7 +37,6 @@ class LocalDataBloc extends Bloc<LocalDataEvent, LocalDataState> {
     final dataState =
         await _initTableUseCase(params: (event.bdName, event.user, event.pass));
     if (dataState is DataSuccess) {
-      dbName = event.bdName;
       emit(LocalDataLoading());
     }
 

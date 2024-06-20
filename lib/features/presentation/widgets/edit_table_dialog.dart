@@ -34,8 +34,8 @@ void editTableDialog(
                       BlocProvider.of<TableBloc>(context1)
                           .add(InsertRow(row: result));
                     } else {
-                      BlocProvider.of<TableBloc>(context1)
-                          .add(UpdateRow(row: result, id: id!));
+                      // BlocProvider.of<TableBloc>(context1)
+                      //     .add(UpdateRow(row: result, id: id!));
                     }
 
                     Navigator.pop(context);

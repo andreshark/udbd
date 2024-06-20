@@ -20,9 +20,8 @@ class LocalDataRepositoryImpl extends LocalDataRepository {
   }
 
   @override
-  updateRow(
-      String tableName, String columnId, int id, Map<String, dynamic> row) {
-    return appDataService.updateRow(tableName, columnId, row, id);
+  updateRow(String tableName, List<dynamic> rows) {
+    return appDataService.updateRow(tableName, rows);
   }
 
   @override

@@ -9,8 +9,7 @@ abstract class LocalDataRepository {
 
   Future<DataState> insertRow(String tableName, Map<String, dynamic> row);
 
-  Future<DataState> updateRow(
-      String tableName, String columnId, int id, Map<String, dynamic> row);
+  Future<DataState> updateRow(String tableName, List<dynamic> rows);
 
   Future<DataState> deleteRow(String tableName, String columnId, int id);
 

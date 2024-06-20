@@ -10,6 +10,7 @@ environment:
   sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
+  data_table_2: ^2.5.15
   equatable: ^2.0.5
   fluent_ui: ^4.8.7
   flutter:

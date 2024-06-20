@@ -92,10 +92,12 @@ class MyApp extends StatelessWidget {
     final appTheme = context.watch<AppTheme>();
     return FluentApp.router(
       title: 'Discord sender',
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.light,
       debugShowCheckedModeBanner: false,
       color: const Color(0xffebaee9),
       darkTheme: FluentThemeData(
+        dividerTheme:
+            DividerThemeData(decoration: BoxDecoration(color: Colors.red)),
         accentColor: Colors.purple,
         dialogTheme: const ContentDialogThemeData(
             actionsDecoration: BoxDecoration(
@@ -116,7 +118,7 @@ class MyApp extends StatelessWidget {
             backgroundColor:
                 ButtonState.resolveWith<Color?>((Set<ButtonStates> states) {
               if (states.contains(ButtonStates.hovering)) {
-                return const Color(0xffebaee9);
+                return Colors.red;
               }
               if (states.contains(ButtonStates.disabled)) {
                 return const Color(0xff2e0773);
@@ -126,14 +128,13 @@ class MyApp extends StatelessWidget {
               }
               return const Color(0xffFFDEFE);
             }))),
-        navigationPaneTheme: const NavigationPaneThemeData(
-            backgroundColor: Color(0xff2e0773),
-            highlightColor: Color(0xffFFDEFE)),
+        navigationPaneTheme: NavigationPaneThemeData(
+            backgroundColor: Color(0xff2e0773), highlightColor: Colors.red),
         visualDensity: VisualDensity.standard,
         focusTheme: FocusThemeData(
           glowFactor: is10footScreen(context) ? 2.0 : 0.0,
         ),
-        cardColor: const Color(0xff6F23F3),
+        cardColor: Colors.red,
       ),
       theme: FluentThemeData(
         visualDensity: VisualDensity.standard,

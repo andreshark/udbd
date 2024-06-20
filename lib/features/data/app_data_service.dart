@@ -92,10 +92,9 @@ ORDER BY
     }
   }
 
-  Future<DataState> updateRow(String tableName, String columnId,
-      Map<String, dynamic> row, int id) async {
+  Future<DataState> updateRow(String tableName, List<dynamic> rows) async {
     try {
-      List<String> columns = row.keys.toList();
+      List<String> columns = rows[0].keys.toList();
       String args = '';
 
       for (int i = 0; i < columns.length; i++) {
@@ -105,9 +104,13 @@ ORDER BY
         }
       }
 
-      await conn.execute(
-          Sql.named('UPDATE $tableName SET $args WHERE $columnId=$id'),
-          parameters: row);
+      for (int i = 0; i < rows.length; i++) {
+        Map<String, dynamic> row = rows[i];
+        await conn.execute(Sql.named('''
+          UPDATE $tableName SET $args WHERE ${rows[0].keys.first}=${rows[i].values.first}
+          '''), parameters: row);
+      }
+
       return const DataSuccess(true);
     } on ServerException catch (e) {
       return DataFailedMessage(e.message.toString());
